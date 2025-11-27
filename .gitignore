@@ -1,0 +1,18 @@
+# Node
+node_modules/
+dist/
+build/
+.env
+.env.local
+.DS_Store
+.vscode/
+*.log
+
+# React/Vite/npm
+client/node_modules/
+client/dist/
+client/build/
+
+# Server
+server/node_modules/
+server/.env
