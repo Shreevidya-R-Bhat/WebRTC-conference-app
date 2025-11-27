@@ -6,19 +6,12 @@ This project also collects and visualizes important WebRTC performance stats (bi
  Features
 
  Peer-to-Peer Video Conferencing via WebRTC
-
  Real-time Signaling using WebSockets (Socket.IO or ws)
-
  Live Audio/Video Streams from camera + microphone
-
  WebRTC Stats Dashboard (bitrate, fps, packets sent/received, RTT, jitter)
-
  Room-based Meeting System
-
  Media Controls (mute/unmute, camera on/off)
-
  Mini Performance Report included in repo
-
  React Frontend + Node.js Backend
 
  Tech Stack
@@ -26,24 +19,17 @@ This project also collects and visualizes important WebRTC performance stats (bi
 Frontend (React)
 
 React + Vite
-
 WebRTC APIs (getUserMedia, RTCPeerConnection, RTCDataChannel)
-
 Socket.IO client or WebSocket client
-
 Chart.js or Recharts (for stats UI)
-
 TailwindCSS / CSS Modules (your choice)
 
 
 Backend (Node.js)
 
 Node.js + Express
-
 WebSocket Server (Socket.IO or ws)
-
 Optional: Redis for scaling signaling
-
 Optional: PM2 / Docker for deployment
 
 
@@ -58,42 +44,16 @@ User A <—WebRTC—> User B
 WebRTC handles the media stream,
 WebSockets handle the signaling.
 
-
- Project Structure
-root/
- ├── client/               # React frontend
- │   ├── src/
- │   │   ├── components/
- │   │   ├── hooks/webrtc/
- │   │   ├── pages/
- │   │   └── utils/
- │   └── vite.config.js
- │
- ├── server/               # Node backend (signaling)
- │   ├── index.js
- │   └── socket.js
- │
- ├── stats-report/
- │   └── WebRTC_Stats_Report.md  # mini analysis
- │
- ├── README.md
- └── package.json
-
  
  WebRTC Stats Tracked
 
 You will collect and plot:
 
  Bitrate (kbps)
-
  Packets Sent / Received
-
  RTT (Latency)
-
  Jitter
-
  Video Frame Rate
-
  Resolution (width × height)
 
 
@@ -108,17 +68,11 @@ A compact report is included at:
 
 stats-report/WebRTC_Stats_Report.md
 
-
 Includes:
 
 Setup
-
 Methodology
-
 Collected stats
-
 Graphs
-
 Observations & bottlenecks
-
 Possible improvements
