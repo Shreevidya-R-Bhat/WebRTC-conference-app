@@ -84,6 +84,12 @@ export function Room({ roomId, username, onLeave }) {
       switch (data.type) {
         case 'room-joined':
           console.log('👥', data.peers.length, 'peers in room');
+          console.log('   Peers:', data.peers);
+          
+          // Store existing peers with their usernames
+          setPeers(prev => [...prev, ...data.peers]);
+          
+          // Create offers to existing peers
           data.peers.forEach(peer => createOffer(peer.peerId));
           break;
 
