@@ -1,7 +1,7 @@
 import { useRef, useCallback } from 'react';
 import { ICE_SERVERS } from '../utils/webrtcConfig';
 
-export function useWebRTC(localStream, sendMessage, myPeerId, onRemoteStream) {
+export function useWebRTC(localStream, sendMessage, myPeerId, onRemoteStream, onSetActivePeer) {
   const peerConnections = useRef({});
 
   console.log('🆔 useWebRTC initialized with myPeerId:', myPeerId);
@@ -50,11 +50,17 @@ export function useWebRTC(localStream, sendMessage, myPeerId, onRemoteStream) {
     // Handle connection state
     pc.onconnectionstatechange = () => {
       console.log(`🔄 Connection with ${peerId}:`, pc.connectionState);
+      
+      // Set as active peer when connected
+      if (pc.connectionState === 'connected' && onSetActivePeer) {
+        console.log('✅ Setting active peer connection for stats');
+        onSetActivePeer(pc);
+      }
     };
 
     peerConnections.current[peerId] = pc;
     return pc;
-  }, [localStream, sendMessage, myPeerId, onRemoteStream]);
+  }, [localStream, sendMessage, myPeerId, onRemoteStream, onSetActivePeer]);
 
   const createOffer = useCallback(async (peerId) => {
     console.log('📞 Creating offer for:', peerId);

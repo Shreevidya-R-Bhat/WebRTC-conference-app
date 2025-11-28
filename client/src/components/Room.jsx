@@ -60,6 +60,12 @@ export function Room({ roomId, username, onLeave }) {
     });
   }, []);
 
+  // Callback to set active peer connection for stats
+  const handleSetActivePeer = useCallback((pc) => {
+    console.log('📊 Active peer connection set for stats');
+    setActivePeerConnection(pc);
+  }, []);
+
   const {
     peerConnections,
     createOffer,
@@ -68,9 +74,7 @@ export function Room({ roomId, username, onLeave }) {
     handleIceCandidate,
     removePeer,
     closeAllConnections
-  } = useWebRTC(localStream, sendMessage, myPeerId.current, handleRemoteStream);
-
-
+  } = useWebRTC(localStream, sendMessage, myPeerId.current, handleRemoteStream, handleSetActivePeer);
 
   // Handle WebSocket messages
   useEffect(() => {
