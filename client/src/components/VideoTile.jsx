@@ -20,7 +20,7 @@ export function VideoTile({ stream, username, isLocal, isMuted }) {
         className="video-element"
       />
       <div className="video-label">
-        {username} {isLocal && '(You)'}
+        {isLocal ? `${username} (You)` : username || 'Guest'}
         {isMuted && ' 🔇'}
       </div>
     </div>

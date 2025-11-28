@@ -210,7 +210,7 @@ export function Room({ roomId, username, onLeave }) {
         {/* Your own video - always shows */}
         <VideoTile
           stream={localStream}
-          username={username + " (You)"}
+          username={username}
           isLocal={true}
           isMuted={!isAudioEnabled}
         />
