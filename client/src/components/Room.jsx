@@ -14,6 +14,7 @@ export function Room({ roomId, username, onLeave }) {
   const [peers, setPeers] = useState([]);
   const [messages, setMessages] = useState([]);
   const [showStats, setShowStats] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [activePeerConnection, setActivePeerConnection] = useState(null);
@@ -184,11 +185,22 @@ export function Room({ roomId, username, onLeave }) {
   return (
     <div className="room-container">
       <div className="room-header">
-        <h2>Room: {roomId}</h2>
-        <button onClick={() => setShowStats(!showStats)}>
-          {showStats ? '❌ Hide Stats' : '📊 Show Stats'}
-        </button>
+        <div>
+          <h2>Room: {roomId}</h2>
+          <small style={{ color: '#666', fontSize: '13px' }}>
+            👥 {Object.keys(remoteStreams).length + 1} participant(s)
+          </small>
+        </div>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => setShowChat(!showChat)}>
+            {showChat ? '❌ Close Chat' : '💬 Open Chat'}
+          </button>
+          <button onClick={() => setShowStats(!showStats)}>
+            {showStats ? '❌ Hide Stats' : '📊 Show Stats'}
+          </button>
+        </div>
       </div>
+
 
       <div className="video-grid">
         {/* Your own video - always shows */}
@@ -224,13 +236,16 @@ export function Room({ roomId, username, onLeave }) {
         onLeave={handleLeaveRoom}
       />
 
-      <ChatBox
-        messages={messages}
-        onSendMessage={sendChatMessage}
-        username={username}
-      />
+      {showChat && (
+        <ChatBox
+          messages={messages}
+          onSendMessage={sendChatMessage}
+          username={username}
+        />
+      )}
 
       {showStats && <StatsPanel peerConnection={activePeerConnection} />}
+
     </div>
   );
 }
