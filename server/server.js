@@ -50,6 +50,10 @@ wss.on('connection', (ws) => {
 });
 
 function handleMessage(ws, data) {
+  // LOG THE SENDER PROPERLY
+  const sender = data.senderPeerId || data.peerId || 'unknown';
+  console.log(`📨 ${data.type} from ${sender}`);
+  
   switch (data.type) {
     case 'join-room':
       const { roomId, peerId, username } = data;
@@ -84,6 +88,7 @@ function handleMessage(ws, data) {
       break;
 
     case 'offer':
+      console.log(`   📞 Forwarding offer from ${data.senderPeerId} to ${data.targetPeerId}`);
       forwardTo(data.targetPeerId, {
         type: 'offer',
         offer: data.offer,
@@ -92,6 +97,7 @@ function handleMessage(ws, data) {
       break;
 
     case 'answer':
+      console.log(`   ✅ Forwarding answer from ${data.senderPeerId} to ${data.targetPeerId}`);
       forwardTo(data.targetPeerId, {
         type: 'answer',
         answer: data.answer,
@@ -100,6 +106,7 @@ function handleMessage(ws, data) {
       break;
 
     case 'ice-candidate':
+      console.log(`   🧊 Forwarding ICE from ${data.senderPeerId} to ${data.targetPeerId}`);
       forwardTo(data.targetPeerId, {
         type: 'ice-candidate',
         candidate: data.candidate,
@@ -119,6 +126,7 @@ function handleMessage(ws, data) {
       break;
   }
 }
+
 
 function forwardTo(peerId, message) {
   clients.forEach((client, ws) => {

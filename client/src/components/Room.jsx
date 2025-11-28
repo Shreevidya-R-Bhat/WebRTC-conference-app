@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { VideoTile } from './VideoTile';
 import { ChatBox } from './ChatBox';
 import { StatsPanel } from './StatsPanel';
@@ -20,6 +20,8 @@ export function Room({ roomId, username, onLeave }) {
   
   const myPeerId = useRef(`peer_${Math.random().toString(36).substring(2, 11)}`);
   const hasJoinedRef = useRef(false);
+
+  console.log('CLIENT myPeerId.current', myPeerId.current);
 
   const { sendMessage, onMessage } = useWebSocket('ws://localhost:8080');
 
@@ -47,6 +49,16 @@ export function Room({ roomId, username, onLeave }) {
     };
   }, []);
 
+  // Callback to handle remote streams
+  const handleRemoteStream = useCallback((peerId, stream) => {
+    console.log('📺 Adding remote stream to UI for:', peerId);
+    setRemoteStreams(prev => {
+      const updated = { ...prev, [peerId]: stream };
+      console.log('   Total remote streams:', Object.keys(updated).length);
+      return updated;
+    });
+  }, []);
+
   const {
     peerConnections,
     createOffer,
@@ -55,7 +67,9 @@ export function Room({ roomId, username, onLeave }) {
     handleIceCandidate,
     removePeer,
     closeAllConnections
-  } = useWebRTC(localStream, sendMessage, myPeerId.current);
+  } = useWebRTC(localStream, sendMessage, myPeerId.current, handleRemoteStream);
+
+
 
   // Handle WebSocket messages
   useEffect(() => {
@@ -127,18 +141,6 @@ export function Room({ roomId, username, onLeave }) {
     }
   }, [localStream, sendMessage, roomId, username]);
 
-  // Handle remote streams
-  useEffect(() => {
-    Object.entries(peerConnections).forEach(([peerId, pc]) => {
-      pc.ontrack = (event) => {
-        console.log('🎥 Remote stream:', peerId);
-        setRemoteStreams(prev => ({ ...prev, [peerId]: event.streams[0] }));
-        if (!activePeerConnection) {
-          setActivePeerConnection(pc);
-        }
-      };
-    });
-  }, [peerConnections, activePeerConnection]);
 
   const toggleAudio = () => {
     if (localStream) {
@@ -189,24 +191,30 @@ export function Room({ roomId, username, onLeave }) {
       </div>
 
       <div className="video-grid">
+        {/* Your own video - always shows */}
         <VideoTile
           stream={localStream}
-          username={username}
+          username={username + " (You)"}
           isLocal={true}
           isMuted={!isAudioEnabled}
         />
+        
+        {/* Other users' videos - dynamically added */}
         {Object.entries(remoteStreams).map(([peerId, stream]) => {
           const peer = peers.find(p => p.peerId === peerId);
+          console.log('Rendering remote video for:', peerId, peer?.username);
           return (
             <VideoTile
               key={peerId}
               stream={stream}
-              username={peer?.username || 'User'}
+              username={peer?.username || 'Guest'}
               isLocal={false}
+              isMuted={false}
             />
           );
         })}
       </div>
+
 
       <Controls
         isAudioEnabled={isAudioEnabled}

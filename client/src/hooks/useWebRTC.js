@@ -1,8 +1,10 @@
 import { useRef, useCallback } from 'react';
 import { ICE_SERVERS } from '../utils/webrtcConfig';
 
-export function useWebRTC(localStream, sendMessage, myPeerId) {
+export function useWebRTC(localStream, sendMessage, myPeerId, onRemoteStream) {
   const peerConnections = useRef({});
+
+  console.log('🆔 useWebRTC initialized with myPeerId:', myPeerId);
 
   const createPeerConnection = useCallback((peerId) => {
     console.log('🔗 Creating peer connection for:', peerId);
@@ -12,52 +14,69 @@ export function useWebRTC(localStream, sendMessage, myPeerId) {
     if (localStream) {
       localStream.getTracks().forEach(track => {
         pc.addTrack(track, localStream);
-        console.log('➕ Added local track:', track.kind, 'to peer:', peerId);
+        console.log('➕ Added track:', track.kind, 'to peer:', peerId);
       });
     }
+
+    // ✅ CRITICAL FIX: Set up ontrack handler HERE, not later
+    pc.ontrack = (event) => {
+      console.log('🎥 RECEIVED remote stream from:', peerId);
+      console.log('   Stream ID:', event.streams[0].id);
+      console.log('   Track count:', event.streams[0].getTracks().length);
+      
+      // Call the callback to update state in Room.jsx
+      if (onRemoteStream) {
+        onRemoteStream(peerId, event.streams[0]);
+      }
+    };
 
     // Handle ICE candidates
     pc.onicecandidate = (event) => {
       if (event.candidate) {
-        console.log('🧊 Sending ICE candidate to:', peerId);
-        sendMessage({
+        const message = {
           type: 'ice-candidate',
           targetPeerId: peerId,
           candidate: event.candidate,
           senderPeerId: myPeerId
-        });
+        };
+        
+        console.log('🧊 SENDING ICE candidate:', message);
+        console.log('   senderPeerId:', message.senderPeerId);
+        
+        sendMessage(message);
       }
     };
 
-    // Handle connection state changes
+    // Handle connection state
     pc.onconnectionstatechange = () => {
-      console.log(`🔄 Connection state with ${peerId}:`, pc.connectionState);
-    };
-
-    // Handle ICE connection state
-    pc.oniceconnectionstatechange = () => {
-      console.log(`❄️ ICE state with ${peerId}:`, pc.iceConnectionState);
+      console.log(`🔄 Connection with ${peerId}:`, pc.connectionState);
     };
 
     peerConnections.current[peerId] = pc;
     return pc;
-  }, [localStream, sendMessage, myPeerId]);
+  }, [localStream, sendMessage, myPeerId, onRemoteStream]);
 
   const createOffer = useCallback(async (peerId) => {
     console.log('📞 Creating offer for:', peerId);
+    console.log('   My peerId:', myPeerId);
+    
     const pc = createPeerConnection(peerId);
     
     try {
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
       
-      console.log('📤 Sending offer to:', peerId);
-      sendMessage({
+      const message = {
         type: 'offer',
         targetPeerId: peerId,
         offer: offer,
         senderPeerId: myPeerId
-      });
+      };
+      
+      console.log('📤 SENDING offer:', message);
+      console.log('   senderPeerId:', message.senderPeerId);
+      
+      sendMessage(message);
     } catch (error) {
       console.error('❌ Error creating offer:', error);
     }
@@ -65,6 +84,8 @@ export function useWebRTC(localStream, sendMessage, myPeerId) {
 
   const handleOffer = useCallback(async (offer, senderPeerId) => {
     console.log('📥 Handling offer from:', senderPeerId);
+    console.log('   My peerId:', myPeerId);
+    
     const pc = createPeerConnection(senderPeerId);
     
     try {
@@ -72,13 +93,17 @@ export function useWebRTC(localStream, sendMessage, myPeerId) {
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       
-      console.log('📤 Sending answer to:', senderPeerId);
-      sendMessage({
+      const message = {
         type: 'answer',
         targetPeerId: senderPeerId,
         answer: answer,
         senderPeerId: myPeerId
-      });
+      };
+      
+      console.log('📤 SENDING answer:', message);
+      console.log('   senderPeerId:', message.senderPeerId);
+      
+      sendMessage(message);
     } catch (error) {
       console.error('❌ Error handling offer:', error);
     }
@@ -95,7 +120,7 @@ export function useWebRTC(localStream, sendMessage, myPeerId) {
         console.error('❌ Error handling answer:', error);
       }
     } else {
-      console.error('❌ Peer connection not found for:', senderPeerId);
+      console.error('❌ No peer connection found for:', senderPeerId);
     }
   }, []);
 
@@ -110,7 +135,7 @@ export function useWebRTC(localStream, sendMessage, myPeerId) {
         console.error('❌ Error adding ICE candidate:', error);
       }
     } else {
-      console.error('❌ Peer connection not found for:', senderPeerId);
+      console.error('❌ No peer connection found for:', senderPeerId);
     }
   }, []);
 
