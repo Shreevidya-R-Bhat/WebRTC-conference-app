@@ -24,7 +24,9 @@ export function Room({ roomId, username, onLeave }) {
 
   console.log('CLIENT myPeerId.current', myPeerId.current);
 
-  const { sendMessage, onMessage } = useWebSocket('ws://localhost:8080');
+  // Use environment variable or default to localhost
+  const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8080';
+  const { sendMessage, onMessage } = useWebSocket(WS_URL);
 
   // Get local media
   useEffect(() => {
